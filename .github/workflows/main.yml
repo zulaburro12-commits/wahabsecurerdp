@@ -1,0 +1,49 @@
+name: Ultra-Windows-RDP
+on:
+  workflow_dispatch:
+
+jobs:
+  rdp:
+    runs-on: windows-latest
+    timeout-minutes: 360
+
+    steps:
+    - name: Download RustDesk Host
+      run: |
+        Invoke-WebRequest "https://github.com/rustdesk/rustdesk/releases/latest/download/rustdesk-host.exe" -OutFile "rustdesk.exe"
+
+    - name: Install RustDesk
+      run: |
+        Start-Process "rustdesk.exe" -ArgumentList "--install" -Wait
+        Start-Sleep -Seconds 5
+
+    - name: Start RustDesk Service
+      run: |
+        Start-Service RustDesk
+        Start-Sleep -Seconds 8
+
+    - name: Fetch RustDesk ID & Password
+      run: |
+        $id = (Get-Content "C:\Program Files\RustDesk\id").Trim()
+        $pw = (Get-Content "C:\Program Files\RustDesk\password").Trim()
+        echo "RID=$id" >> $env:GITHUB_ENV
+        echo "RPW=$pw" >> $env:GITHUB_ENV
+
+    - name: Show Login Info
+      run: |
+        Write-Host "`n=============================="
+        Write-Host "     ULTRA WINDOWS RDP"
+        Write-Host "=============================="
+        Write-Host "ID: $env:RID"
+        Write-Host "Password: $env:RPW"
+        Write-Host "=============================="
+        Write-Host "Download RustDesk Viewer:"
+        Write-Host "https://rustdesk.com"
+        Write-Host "==============================`n"
+
+    - name: Keep RDP Alive (6 Hours)
+      run: |
+        while ($true) {
+          Write-Host "RDP Running..."
+          Start-Sleep -Seconds 240
+        }
